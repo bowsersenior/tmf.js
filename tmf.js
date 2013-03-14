@@ -44,10 +44,10 @@
 //     // true
 // 
 //     insist(false)
-//     // "Assertion failed!"
+//     // ! "Assertion failed!"
 // 
 //     insist(false, "My very own message!")
-//     // "My very own message!"
+//     // ! "My very own message!"
 // 
 //     assertEqual(function(){ return 'foo' }, 'foo')
 //     // true
