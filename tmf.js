@@ -1,5 +1,5 @@
 // tmf.js
-// 2013-03-13
+// 2013-04-26
 
 // Copyright (c) 2013 Mani Tadayon
 
@@ -23,44 +23,70 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Usage: 
-// 
+// Usage:
+//
 //     assert(true)
 //     // true
-// 
+//
 //     assert('foo')
 //     // true
-// 
+//
 //     assert(false)
 //     // false
-// 
+//
 //     assert('0')
 //     // true
-// 
+//
 //     assert(0)
 //     // false
-// 
+//
+//     assert(function(){ return true })
+//     // true
+//
+//     assert(function(){ return false })
+//     // false
+//
 //     insist(true)
 //     // true
-// 
+//
 //     insist(false)
 //     // ! "Assertion failed!"
-// 
+//
 //     insist(false, "My very own message!")
 //     // ! "My very own message!"
-// 
-//     assertEqual(function(){ return 'foo' }, 'foo')
+//
+//     insist(function(){ return true })
 //     // true
-// 
-//     insistEqual(function(){ return 'foo' }, 'foo')
+//
+//     insist(function(){ return false })
+//     // ! "Assertion failed!"
+//
+//     fooFn = function(){ return 'foo' };
+//     assertEqual(fooFn, 'foo')
 //     // true
-// 
-//     insistEqual(function(){ return 'foo' }, 'foos')
+//
+//     insistEqual(fooFn, 'foo')
+//     // true
+//
+//     insistEqual(fooFn, 'foos')
 //     // ! "Expected function () { return 'foo'; } to equal foos"
-// 
-//     insistEqual(function(){ return 'foo' }, 'foos', "A custom message of your own choosing")
+//
+//     insistEqual(fooFn, 'foos', "A custom message of your own choosing")
 //     // ! "A custom message of your own choosing"
+//
+//     myVarName = 0;
+//     stub('myVarName', 123, function(){
+//         return assertEqual(myVarName,123);
+//     });
+//     // true
+//
+//     myVarName
+//     // 0
+//
 
+// TODO: Create a single tmf function to encapsulate all functionality
+// TODO: Use promises and chaining to use an API like the following:
+//         tmf().stub('a', 1).assertEqual(function(){ return a === 1 });
 ;(function(scope){
     "use strict";
 
@@ -97,4 +123,56 @@
         msg = msg || "Expected " + f1 + " to equal " + f2;
         return insist(assertEqual(f1, f2), msg);
     }
-}(window));
+
+    scope.stub = function(varName, value, fn, errFn) {
+        var oldVal,
+            returnVal,
+            errToThrow,
+            varDeclared = true; // will check below
+
+        // detect if there is a reference to varName
+        // i.e. differentiate between:
+        // * declared var with no assignment (has reference)
+        // * undeclared var (has no reference)
+        try {
+            // TODO: find alternative without using eval
+            eval(varName);
+        } catch (e) {
+             if (e instanceof ReferenceError) {
+                 varDeclared = false
+             }
+        };
+
+        // save the old value to restore after function call
+        if (varDeclared) {
+            oldVal = scope[varName];
+        }
+
+        scope[varName] = value;
+
+        try {
+            returnVal = fn();
+        } catch (e) {
+            errToThrow = e;
+        } finally {
+            if (varDeclared) {
+                // restore old value
+                // will handle undefined values
+                scope[varName] = oldVal;
+            } else {
+                // handle undeclared variables
+                delete scope[varName];
+            }
+
+            if (errToThrow) {
+                if (typeof errFn === "function") {
+                    errFn(errToThrow, varName, value);
+                } else {
+                    throw errToThrow;
+                }
+            } else {
+                 return returnVal;
+            }
+        }
+    }
+}(this));
