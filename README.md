@@ -44,6 +44,14 @@ insist(function(){ return true })
 insist(function(){ return false })
 // ! "Assertion failed!"
 
+a = [ {c: 123, d: [1,2] }, 4 ]
+b = [ {c: 123, d: [1,2] }, 4 ]
+a === b
+// false (javascript issue with comparisons of arrays & objects)
+
+assertEqual(a, b)
+// true (uses JSON.stringify for comparison)
+
 fooFn = function(){ return 'foo' };
 assertEqual(fooFn, 'foo')
 // true

@@ -61,6 +61,14 @@
 //     insist(function(){ return false })
 //     // ! "Assertion failed!"
 //
+//     a = [ {c: 123, d: [1,2] }, 4 ]
+//     b = [ {c: 123, d: [1,2] }, 4 ]
+//     a === b
+//     // false (javascript issue with comparisons of arrays & objects)
+//
+//     assertEqual(a, b)
+//     // true (uses JSON.stringify for comparison)
+//
 //     fooFn = function(){ return 'foo' };
 //     assertEqual(fooFn, 'foo')
 //     // true
@@ -95,7 +103,6 @@
 // TODO: Add a testGroup function to organize tests
 // TODO: Add a test runner to execute tests and output results
 // TODO: Consider using a namespace to host all tmf functions
-// TODO: Handle arrays and objects in assertEqual & insistEqual (JSON.stringify ?)
 ;(function(scope){
     "use strict";
 
@@ -125,7 +132,7 @@
             f2 = f2();
         }
 
-        return f1 === f2;
+        return JSON.stringify(f1) === JSON.stringify(f2);
     }
 
     scope.insistEqual = function(f1, f2, msg) {
