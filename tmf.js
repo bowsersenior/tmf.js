@@ -1,5 +1,5 @@
 // tmf.js
-// 2013-04-26
+// 2013-04-28
 
 // Copyright (c) 2013 Mani Tadayon
 
@@ -124,10 +124,8 @@
         return insist(assertEqual(f1, f2), msg);
     }
 
-    scope.stub = function(varName, value, fn, errFn) {
+    function setVarOnScope(varName, value) {
         var oldVal,
-            returnVal,
-            errToThrow,
             varDeclared = true; // will check below
 
         // detect if there is a reference to varName
@@ -150,23 +148,39 @@
 
         scope[varName] = value;
 
+        return {
+            varName     : varName,
+            oldVal      : oldVal,
+            varDeclared : varDeclared
+        }
+    }
+
+    function restoreVarOnScope(o) {
+        if (o.varDeclared) {
+            // restore old value
+            // will handle undefined values
+            scope[o.varName] = o.oldVal;
+        } else {
+            // handle undeclared variables
+            delete scope[o.varName];
+        }
+    }
+
+    scope.stub = function(varName, value, fn, errFn) {
+        var setVarInfo = setVarOnScope(varName, value),
+            errToThrow,
+            returnVal;
+
         try {
             returnVal = fn();
         } catch (e) {
             errToThrow = e;
         } finally {
-            if (varDeclared) {
-                // restore old value
-                // will handle undefined values
-                scope[varName] = oldVal;
-            } else {
-                // handle undeclared variables
-                delete scope[varName];
-            }
+            restoreVarOnScope(setVarInfo);
 
             if (errToThrow) {
                 if (typeof errFn === "function") {
-                    errFn(errToThrow, varName, value);
+                    errFn(errToThrow, setVarInfo);
                 } else {
                     throw errToThrow;
                 }
