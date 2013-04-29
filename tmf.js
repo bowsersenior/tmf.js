@@ -100,6 +100,7 @@
 //     myOtherVarName
 //     // 0
 
+// TODO: Handle nested properties in stub:  stub({"a.b.c": 1}, ...)
 // TODO: Add a testGroup function to organize tests
 // TODO: Add a test runner to execute tests and output results
 // TODO: Consider using a namespace to host all tmf functions
