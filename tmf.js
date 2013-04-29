@@ -74,19 +74,28 @@
 //     insistEqual(fooFn, 'foos', "A custom message of your own choosing")
 //     // ! "A custom message of your own choosing"
 //
-//     myVarName = 0;
-//     stub('myVarName', 123, function(){
-//         return assertEqual(myVarName,123);
-//     });
+//     myVarName      = 0;
+//     myOtherVarName = 0;
+//     stub({myVarName: 123, myOtherVarName: 321}, function(){
+//         return assertEqual( myVarName + myOtherVarName , 444);
+//     })
 //     // true
+//
+//     stub({myVarName: 1223, myOtherVarName: 321}, function(){
+//         return insistEqual( myVarName + myOtherVarName , 1);
+//     })
+//     // ! "Expected 1544 to equal 1"
 //
 //     myVarName
 //     // 0
 //
+//     myOtherVarName
+//     // 0
 
-// TODO: Create a single tmf function to encapsulate all functionality
-// TODO: Use promises and chaining to use an API like the following:
-//         tmf().stub('a', 1).assertEqual(function(){ return a === 1 });
+// TODO: Add a testGroup function to organize tests
+// TODO: Add a test runner to execute tests and output results
+// TODO: Consider using a namespace to host all tmf functions
+// TODO: Handle arrays and objects in assertEqual & insistEqual (JSON.stringify ?)
 ;(function(scope){
     "use strict";
 
@@ -124,7 +133,7 @@
         return insist(assertEqual(f1, f2), msg);
     }
 
-    function setVarOnScope(varName, value) {
+    function setVarOnScope(name, value) {
         var oldVal,
             varDeclared = true; // will check below
 
@@ -134,7 +143,7 @@
         // * undeclared var (has no reference)
         try {
             // TODO: find alternative without using eval
-            eval(varName);
+            eval(name);
         } catch (e) {
              if (e instanceof ReferenceError) {
                  varDeclared = false
@@ -143,44 +152,57 @@
 
         // save the old value to restore after function call
         if (varDeclared) {
-            oldVal = scope[varName];
+            oldVal = scope[name];
         }
 
-        scope[varName] = value;
+        scope[name] = value;
 
         return {
-            varName     : varName,
-            oldVal      : oldVal,
-            varDeclared : varDeclared
+            name     : name,
+            value    : oldVal,
+            declared : varDeclared
         }
     }
 
     function restoreVarOnScope(o) {
-        if (o.varDeclared) {
+        if (o.declared) {
             // restore old value
             // will handle undefined values
-            scope[o.varName] = o.oldVal;
+            scope[o.name] = o.value;
         } else {
             // handle undeclared variables
-            delete scope[o.varName];
+            delete scope[o.name];
         }
     }
 
-    scope.stub = function(varName, value, fn, errFn) {
-        var setVarInfo = setVarOnScope(varName, value),
+    scope.stub = function (o, fn, errFn) {
+        var setVarInfo = [],
             errToThrow,
-            returnVal;
+            returnVal,
+            varName,
+            i,
+            n;
+
+        for (varName in o) {
+            if ( o.hasOwnProperty(varName) ) {
+                setVarInfo.push(
+                    setVarOnScope(varName, o[varName])
+                );
+            }
+        };
 
         try {
             returnVal = fn();
         } catch (e) {
             errToThrow = e;
         } finally {
-            restoreVarOnScope(setVarInfo);
+            for (i = 0, n = setVarInfo.length; i < n; i++) {
+                restoreVarOnScope(setVarInfo[i]);
+            }
 
             if (errToThrow) {
                 if (typeof errFn === "function") {
-                    errFn(errToThrow, setVarInfo);
+                    errFn(errToThrow, o);
                 } else {
                     throw errToThrow;
                 }

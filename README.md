@@ -3,6 +3,7 @@ tmf.js
 
 tmf.js is a minimal testing tool for javascript
 
+
 ```javascript
 
 // Usage:
@@ -50,18 +51,27 @@ assertEqual(fooFn, 'foo')
 insistEqual(fooFn, 'foo')
 // true
 
-insistEqual(fooFn, 'foos')
-// ! "Expected function () { return 'foo'; } to equal foos"
+insistEqual(fooFn, 'notfoo')
+// ! "Expected function () { return 'foo'; } to equal notfoo"
 
-insistEqual(fooFn, 'foos', "A custom message of your own choosing")
+insistEqual(fooFn, 'notfoo', "A custom message of your own choosing")
 // ! "A custom message of your own choosing"
 
-myVarName = 0;
-stub('myVarName', 123, function(){
-    return assertEqual(myVarName,123);
-});
+myVarName      = 0;
+myOtherVarName = 0;
+stub({myVarName: 'foo', myOtherVarName: 'bar'}, function(){
+    return assertEqual( myVarName + myOtherVarName , 'foobar');
+})
 // true
 
+stub({myVarName: 'foo', myOtherVarName: 'bar'}, function(){
+    return insistEqual( myVarName + myOtherVarName , 1);
+})
+// ! "Expected foobar to equal 1"
+
 myVarName
+// 0
+
+myOtherVarName
 // 0
 ```
