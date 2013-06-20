@@ -25,72 +25,58 @@
 
 // Usage:
 //
-//     assert(true)
+//     tmf.assert(true)
 //     // true
 //
-//     assert('foo')
+//     tmf.assert('foo')
 //     // true
 //
-//     assert(false)
-//     // false
-//
-//     assert('0')
-//     // true
-//
-//     assert(0)
-//     // false
-//
-//     assert(function(){ return true })
-//     // true
-//
-//     assert(function(){ return false })
-//     // false
-//
-//     insist(true)
-//     // true
-//
-//     insist(false)
+//     tmf.assert(false)   // throws an error
 //     // ! "Assertion failed!"
 //
-//     insist(false, "My very own message!")
+//     tmf.assert('0')
+//     // true
+//
+//     tmf.assert(0)
+//     // ! "Assertion failed!"
+//
+//     tmf.assert(function(){ return true })
+//     // true
+//
+//     tmf.assert(function(){ return false })
+//     // ! "Assertion failed!"
+//
+//     // set a custom error message
+//     tmf.assert(false, "My very own message!")
 //     // ! "My very own message!"
-//
-//     insist(function(){ return true })
-//     // true
-//
-//     insist(function(){ return false })
-//     // ! "Assertion failed!"
 //
 //     a = [ {c: 123, d: [1,2] }, 4 ]
 //     b = [ {c: 123, d: [1,2] }, 4 ]
 //     a === b
 //     // false (javascript issue with comparisons of arrays & objects)
 //
-//     assertEqual(a, b)
+//     tmf.assertEqual(a, b)
 //     // true (uses JSON.stringify for comparison)
 //
 //     fooFn = function(){ return 'foo' };
-//     assertEqual(fooFn, 'foo')
+//     tmf.assertEqual(fooFn, 'foo')
 //     // true
 //
-//     insistEqual(fooFn, 'foo')
-//     // true
-//
-//     insistEqual(fooFn, 'foos')
+//     tmf.assertEqual(fooFn, 'foos')
 //     // ! "Expected function () { return 'foo'; } to equal foos"
 //
-//     insistEqual(fooFn, 'foos', "A custom message of your own choosing")
+//     tmf.assertEqual(fooFn, 'foos', "A custom message of your own choosing")
 //     // ! "A custom message of your own choosing"
 //
 //     myVarName      = 0;
 //     myOtherVarName = 0;
-//     stub({myVarName: 123, myOtherVarName: 321}, function(){
-//         return assertEqual( myVarName + myOtherVarName , 444);
+//     tmf.stub({myVarName: 123, myOtherVarName: 321}, function(){
+//         return tmf.assertEqual( myVarName + myOtherVarName , 444);
 //     })
 //     // true
 //
-//     stub({myVarName: 1223, myOtherVarName: 321}, function(){
-//         return insistEqual( myVarName + myOtherVarName , 1);
+//     tmf.stub({myVarName: 1223, myOtherVarName: 321}, function(){
+//         return assertEqual( myVarName + myOtherVarName , 1);
 //     })
 //     // ! "Expected 1544 to equal 1"
 //
@@ -107,7 +93,17 @@
 ;(function(scope){
     "use strict";
 
-    scope.assert = function(f){
+    var tmf,
+        assert,
+        assertEqual;
+
+    if (typeof scope.tmf !== "undefined") {
+      throw "tmf is already defined!";
+    }
+
+    tmf = {};
+
+    function assert(f){
         if (typeof f === "function") {
             return !! f();
         } else {
@@ -115,7 +111,7 @@
         }
     };
 
-    scope.insist = function(f, msg) {
+    tmf.assert = function(f, msg) {
         if ( assert(f) ) {
             return true;
         } else {
@@ -124,7 +120,7 @@
         }
     }
 
-    scope.assertEqual = function(f1, f2) {
+    function assertEqual(f1, f2) {
         if (typeof f1 === "function") {
             f1 = f1();
         }
@@ -136,9 +132,9 @@
         return JSON.stringify(f1) === JSON.stringify(f2);
     }
 
-    scope.insistEqual = function(f1, f2, msg) {
+    tmf.assertEqual = function(f1, f2, msg) {
         msg = msg || "Expected " + f1 + " to equal " + f2;
-        return insist(assertEqual(f1, f2), msg);
+        return tmf.assert(assertEqual(f1, f2), msg);
     }
 
     function setVarOnScope(name, value) {
@@ -183,7 +179,7 @@
         }
     }
 
-    scope.stub = function (o, fn, errFn) {
+    tmf.stub = function (o, fn, errFn) {
         var setVarInfo = [],
             errToThrow,
             returnVal,
@@ -219,4 +215,6 @@
             }
         }
     }
+
+    scope.tmf = tmf;
 }(this));
