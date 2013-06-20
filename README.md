@@ -3,79 +3,62 @@ tmf.js
 
 tmf.js is a minimal testing tool for javascript
 
-
+## Usage:
 ```javascript
-
-// Usage:
-
-assert(true)
+tmf.assert(true)
 // true
 
-assert('foo')
+tmf.assert('foo')
 // true
 
-assert(false)
-// false
-
-assert('0')
-// true
-
-assert(0)
-// false
-
-assert(function(){ return true })
-// true
-
-assert(function(){ return false })
-// false
-
-insist(true)
-// true
-
-insist(false)
+tmf.assert(false)   // throws an error
 // ! "Assertion failed!"
 
-insist(false, "My very own message!")
+tmf.assert('0')
+// true
+
+tmf.assert(0)
+// ! "Assertion failed!"
+
+tmf.assert(function(){ return true })
+// true
+
+tmf.assert(function(){ return false })
+// ! "Assertion failed!"
+
+// set a custom error message
+tmf.assert(false, "My very own message!")
 // ! "My very own message!"
-
-insist(function(){ return true })
-// true
-
-insist(function(){ return false })
-// ! "Assertion failed!"
 
 a = [ {c: 123, d: [1,2] }, 4 ]
 b = [ {c: 123, d: [1,2] }, 4 ]
 a === b
 // false (javascript issue with comparisons of arrays & objects)
 
-assertEqual(a, b)
+tmf.assertEqual(a, b)
 // true (uses JSON.stringify for comparison)
 
 fooFn = function(){ return 'foo' };
-assertEqual(fooFn, 'foo')
+tmf.assertEqual(fooFn, 'foo')
 // true
 
-insistEqual(fooFn, 'foo')
-// true
+tmf.assertEqual(fooFn, 'foos')
+// ! "Expected function () { return 'foo'; } to equal foos"
 
-insistEqual(fooFn, 'notfoo')
-// ! "Expected function () { return 'foo'; } to equal notfoo"
-
-insistEqual(fooFn, 'notfoo', "A custom message of your own choosing")
+tmf.assertEqual(fooFn, 'foos', "A custom message of your own choosing")
 // ! "A custom message of your own choosing"
 
 myVarName      = 0;
 myOtherVarName = 0;
-stub({myVarName: 'foo', myOtherVarName: 'bar'}, function(){
-    return assertEqual( myVarName + myOtherVarName , 'foobar');
+tmf.stub({myVarName: 123, myOtherVarName: 321}, function(){
+    return tmf.assertEqual( myVarName + myOtherVarName , 444);
 })
 // true
 
-stub({myVarName: 'foo', myOtherVarName: 'bar'}, function(){
-    return insistEqual( myVarName + myOtherVarName , 1);
+tmf.stub({myVarName: 1223, myOtherVarName: 321}, function(){
+    return assertEqual( myVarName + myOtherVarName , 1);
 })
-// ! "Expected foobar to equal 1"
+// ! "Expected 1544 to equal 1"
 
 myVarName
 // 0
