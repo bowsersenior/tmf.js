@@ -56,7 +56,7 @@ tmf.stub({myVarName: 123, myOtherVarName: 321}, function(){
 // true
 
 tmf.stub({myVarName: 1223, myOtherVarName: 321}, function(){
-    return assertEqual( myVarName + myOtherVarName , 1);
+    return tmf.assertEqual( myVarName + myOtherVarName , 1);
 })
 // ! "Expected 1544 to equal 1"
 
